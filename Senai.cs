@@ -33,7 +33,6 @@ class Program
                 Console.WriteLine($"\nSucesso! Conta selecionada: {tipoSelecionado}");
                 Console.WriteLine("O número da sua Conta é: " + numeroAleatorio);
 
-
                 Conta novaConta;
                 if (tipoSelecionado == TipoConta.ContaCorrente)
                 {
@@ -72,7 +71,11 @@ class Program
                 while (continuar)
                 {
                     Console.Clear();
-                    Console.WriteLine($"=== Conta Atual: {tipoSelecionado} | Saldo: R$ {contaEncontrada.saldo} ===");
+                    Console.WriteLine($"=== Conta Atual: {tipoSelecionado} | Saldo: R$ {contaEncontrada.saldo} | Pontos: {contaEncontrada.pontos} ===");
+                    
+                    double indice = contaEncontrada.CalcularIndiceSaude();
+                    Console.WriteLine($"Índice de Saúde: {indice:F2}%");
+
                     Console.WriteLine("O que você quer fazer?");
                     Console.WriteLine("1 - Depositar");
                     Console.WriteLine("2 - Sacar");
@@ -202,13 +205,10 @@ public abstract class Conta
     public int numero { get; set; }
     public decimal saldo { get; protected set; }
     public string titular { get; set; }
-
-    //adiciona mais o metodo pontuação
-   public int pontos{get; set;}
-    //
+    public int pontos { get; set; }
     public List<Transacao> minhasTransacoes { get; set; } = new List<Transacao>();
 
-    public Conta(string titular, decimal saldo, int numero,int pontos)
+    public Conta(string titular, decimal saldo, int numero, int pontos)
     {
         this.numero = numero;
         this.titular = titular;
@@ -237,20 +237,31 @@ public abstract class Conta
         saldo -= 10;
     }
 
-public virtual double CalcularIndiceSaude()
-{
-    if (minhasTransacoes.Count == 0)
+    public virtual double CalcularIndiceSaude()
     {
-        return 0.0;
+        if (minhasTransacoes.Count == 0)
+        {
+            return 0.0;
+        }
+
+        double pontuacaoMaximaPossivel = minhasTransacoes.Count * 10.0;
+        double percentual = ((double)pontos / pontuacaoMaximaPossivel) * 100.0;
+
+        if (percentual > 90.0 && percentual <= 100.0)
+        {
+            Console.WriteLine("sua conta está saudável");
+        }
+        else if (percentual > 60.0 && percentual <= 90.0)
+        {
+            Console.WriteLine("conta em atenção");
+        }
+        else
+        {
+            Console.WriteLine("conta em risco");
+        }
+
+        return percentual;
     }
-
-    double pontuacaoMaximaPossivel = minhasTransacoes.Count * 10.0;
-
-    double percentual = ((double)pontos / pontuacaoMaximaPossivel) * 100.0;
-
-    return percentual;
-}
-
 }
 
 public class ContaCorrente : Conta
@@ -258,7 +269,7 @@ public class ContaCorrente : Conta
     public decimal LimiteChequeEspecial { get; set; }
 
     public ContaCorrente(int numero, decimal saldo, string titular, decimal limiteChequeEspecial)
-        : base(titular, saldo, numero)
+        : base(titular, saldo, numero, 0)
     {
         this.LimiteChequeEspecial = limiteChequeEspecial;
     }
@@ -273,6 +284,7 @@ public class ContaCorrente : Conta
         }
 
         saldo -= valor;
+        pontos += 5;
     }
 
     public override void AplicarFechamentoMensal()
@@ -287,7 +299,7 @@ public class ContaPoupanca : Conta
     public double TaxaRendimentoMensal { get; set; }
 
     public ContaPoupanca(int numero, decimal saldo, string titular, int diaAniversario, double taxaRendimentoMensal)
-        : base(titular, saldo, numero)
+        : base(titular, saldo, numero, 0)
     {
         this.DiaAniversario = diaAniversario;
         this.TaxaRendimentoMensal = taxaRendimentoMensal;
@@ -307,7 +319,7 @@ public class ContaSalario : Conta
     private int saquesRealizadosNoMes = 0;
 
     public ContaSalario(int numero, decimal saldo, string titular, string empregador, int limiteSaquesMensais)
-        : base(titular, saldo, numero)
+        : base(titular, saldo, numero, 0)
     {
         this.Empregador = empregador;
         this.LimiteSaquesMensais = limiteSaquesMensais;
@@ -335,6 +347,7 @@ public class ContaSalario : Conta
         }
 
         saldo -= (valor + tarifa); 
+        pontos += 5;
     }
 
     public override void AplicarFechamentoMensal()
