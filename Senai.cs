@@ -44,7 +44,7 @@ class Program
                 }
                 else
                 {
-                    novaConta = new ContaSalario(numeroAleatorio, saldoAtual, "Titular", "Empresa X", 2);
+                    novaConta = new ContaSalario(numeroAleatorio, saldoAtual, "Carlos Silva", "Empresa X", 2);
                 }
 
                 listaContas.Add(novaConta);
@@ -92,7 +92,7 @@ class Program
                             Console.Write("Qual o tipo da transação (ex: Depósito, Tarifa)? ");
                             string tipo = Console.ReadLine();
 
-                            Console.Write("Qual o valor que você quer depositar? ");
+                            Console.Write("Qual o valor que você quer depositar/cobrar? ");
                             string leia = Console.ReadLine();
 
                             bool value = decimal.TryParse(leia, out decimal valor);
@@ -257,14 +257,13 @@ public abstract class Conta
         return percentual;
     }
 
+    // Método comum para gerar o relatório com base no RF07 e RF08
     public virtual void GerarRelatorio()
     {
         Console.WriteLine("==================================================================");
         Console.WriteLine("           MINIBANCO .NET - MOTOR DE GESTÃO DE CONTAS             ");
         Console.WriteLine("==================================================================");
-        Console.WriteLine("\n[1/1] PROCESSANDO CONTA");
-        Console.WriteLine("------------------------------------------------------------------");
-        Console.WriteLine("> DADOS DA CONTA:");
+        Console.WriteLine("\n> DADOS DA CONTA:");
         Console.WriteLine($"  - Titular: {titular} | Conta: {numero}");
         Console.WriteLine($"  - Saldo Atual: R$ {saldo:N2}");
 
@@ -288,14 +287,46 @@ public abstract class Conta
         else if (indice > 60.0) classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
 
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
+
+        //
+
         Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
-        if (indice > 90.0)
-            Console.WriteLine("  🟢 Nenhuma pendência identificada. Oferecer produtos de investimento ao cliente.");
-        else if (indice > 60.0)
-            Console.WriteLine("  🟡 Conta apresentando atenção nas movimentações. Acompanhar de perto.");
-        else
-            Console.WriteLine("  🔴 ITENS CRÍTICOS: Conta necessita de reavaliação de limites e tarifas.");
+        
+        bool temTarifas = false;
+        bool temSaques = false;
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Tarifa", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temTarifas)
+                {
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação com o cliente[cite: 17].");
+                    temTarifas = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Revisar pacote de tarifas com o cliente.");
+            }
+        }
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Saque", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temSaques)
+                {
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    temSaques = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Acompanhar volume de retiradas.");
+            }
+        }
+
+        if (!temTarifas && !temSaques)
+        {
+            Console.WriteLine("  🟢 Nenhuma pendência crítica identificada. Sugerir novas opções de investimento.");
+        }
     }
+    //
 }
 
 public class ContaCorrente : Conta
@@ -331,7 +362,7 @@ public class ContaCorrente : Conta
         Console.WriteLine("==================================================================");
         Console.WriteLine("           MINIBANCO .NET - MOTOR DE GESTÃO DE CONTAS             ");
         Console.WriteLine("==================================================================");
-        Console.WriteLine("\n[1/2] PROCESSANDO CONTA");
+        Console.WriteLine("\n[1/2] PROCESSANDO CONTA CORRENTE");
         Console.WriteLine("------------------------------------------------------------------");
         Console.WriteLine("> DADOS DA CONTA:");
         Console.WriteLine("  - Tipo: Conta Corrente");
@@ -349,7 +380,7 @@ public class ContaCorrente : Conta
 
         double indice = CalcularIndiceSaude();
         int maxPts = minhasTransacoes.Count * 10;
-        if (maxPts == 0) maxPts = 50; // Mock de compatibilidade visual caso vazio
+        if (maxPts == 0) maxPts = 50;
 
         Console.WriteLine("\n> RESUMO DA PONTUAÇÃO:");
         Console.WriteLine($"  - Pontuação Atingida: {pontos} de {maxPts} pontos possíveis");
@@ -360,11 +391,43 @@ public class ContaCorrente : Conta
         else if (indice > 60.0) classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
 
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
+        
+        // RF07 e RF08 integrados de forma dinâmica com base nas transações reais[cite: 17]
         Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
-        Console.WriteLine("  🔴 ITENS CRÍTICOS (TARIFAS):");
-        Console.WriteLine("    - Tarifa de manutenção: Avaliar isenção ou migração para pacote de serviços.");
-        Console.WriteLine("  🟡 ITENS DE ATENÇÃO (SAQUES):");
-        Console.WriteLine("    - Conta utilizando limite do cheque especial. Entrar em contato com o cliente.");
+        
+        bool temTarifas = false;
+        bool temSaques = false;
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Tarifa", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temTarifas)
+                {
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação com o cliente[cite: 17].");
+                    temTarifas = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Avaliar isenção ou migração para pacote de serviços.");
+            }
+        }
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Saque", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temSaques)
+                {
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    temSaques = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Conta utilizando limite ou alto volume de saques. Contatar cliente.");
+            }
+        }
+
+        if (!temTarifas && !temSaques)
+        {
+            Console.WriteLine("  🟢 Nenhuma pendência crítica identificada.");
+        }
     }
 }
 
@@ -389,7 +452,7 @@ public class ContaPoupanca : Conta
     public override void GerarRelatorio()
     {
         Console.WriteLine("\n------------------------------------------------------------------");
-        Console.WriteLine("[2/2] PROCESSANDO CONTA");
+        Console.WriteLine("[2/2] PROCESSANDO CONTA POUPANÇA");
         Console.WriteLine("------------------------------------------------------------------");
         Console.WriteLine("> DADOS DA CONTA:");
         Console.WriteLine("  - Tipo: Conta Poupança");
@@ -415,8 +478,42 @@ public class ContaPoupanca : Conta
 
         string classificacaoFinal = "[ CONTA SAUDÁVEL ]";
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
+        
         Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
-        Console.WriteLine("  🟢 Nenhuma pendência identificada. Oferecer produtos de investimento ao cliente.");
+        
+        bool temTarifas = false;
+        bool temSaques = false;
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Tarifa", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temTarifas)
+                {
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão[cite: 17].");
+                    temTarifas = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Revisar cobranças.");
+            }
+        }
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Saque", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temSaques)
+                {
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    temSaques = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Acompanhar saques na poupança.");
+            }
+        }
+
+        if (!temTarifas && !temSaques)
+        {
+            Console.WriteLine("  🟢 Nenhuma pendência identificada. Oferecer produtos de investimento ao cliente.");
+        }
     }
 }
 
@@ -461,6 +558,78 @@ public class ContaSalario : Conta
     public override void AplicarFechamentoMensal()
     {
         saquesRealizadosNoMes = 0; 
+    }
+
+    public override void GerarRelatorio()
+    {
+        Console.WriteLine("==================================================================");
+        Console.WriteLine("           MINIBANCO .NET - MOTOR DE GESTÃO DE CONTAS             ");
+        Console.WriteLine("==================================================================");
+        Console.WriteLine("\n[1/3] PROCESSANDO CONTA SALÁRIO");
+        Console.WriteLine("------------------------------------------------------------------");
+        Console.WriteLine("> DADOS DA CONTA:");
+        Console.WriteLine("  - Tipo: Conta Salário");
+        Console.WriteLine($"  - Titular: {titular} | Conta: {numero}");
+        Console.WriteLine($"  - Atributo Específico: Empregador: {Empregador} | Limite de Saques: {LimiteSaquesMensais}");
+        Console.WriteLine($"  - Saldo Atual: R$ {saldo:N2}");
+
+        Console.WriteLine($"\n> MOVIMENTAÇÕES REGISTRADAS ({minhasTransacoes.Count} TRANSAÇÕES):");
+        foreach (var t in minhasTransacoes)
+        {
+            int ptsT = t.tipo.ToLower().Contains("depósito") ? 10 : (t.tipo.ToLower().Contains("saque") ? 5 : 0);
+            string icone = ptsT == 10 ? "[OK]" : (ptsT == 5 ? "[ ! ]" : "[ X ]");
+            Console.WriteLine($"  {icone} {t.descricao} ------------------- {t.tipo}: R$ {t.valor:N2} ({ptsT} pts)");
+        }
+
+        double indice = CalcularIndiceSaude();
+        int maxPts = minhasTransacoes.Count * 10;
+        if (maxPts == 0) maxPts = 30;
+
+        Console.WriteLine("\n> RESUMO DA PONTUAÇÃO:");
+        Console.WriteLine($"  - Pontuação Atingida: {pontos} de {maxPts} pontos possíveis");
+        Console.WriteLine($"  - Índice de Saúde: {indice:F1}%");
+
+        string classificacaoFinal = "[ CONTA SAUDÁVEL ]";
+        if (indice <= 60.0) classificacaoFinal = "[ CONTA EM RISCO ]";
+        else if (indice <= 90.0) classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+
+        Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
+        
+        Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
+        
+        bool temTarifas = false;
+        bool temSaques = false;
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Tarifa", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temTarifas)
+                {
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação[cite: 17].");
+                    temTarifas = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Negociar tarifas cobradas.");
+            }
+        }
+
+        foreach (var t in minhasTransacoes)
+        {
+            if (t.tipo.Equals("Saque", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!temSaques)
+                {
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    temSaques = true;
+                }
+                Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Monitorar limite de saques mensais gratuitos.");
+            }
+        }
+
+        if (!temTarifas && !temSaques)
+        {
+            Console.WriteLine("  🟢 Conta Salário regular. Monitorar limites mensais de saque.");
+        }
     }
 }
 
