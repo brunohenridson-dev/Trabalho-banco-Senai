@@ -64,7 +64,16 @@ class Program
         
         if (int.TryParse(Console.ReadLine(), out int idconta))
         {
-            Conta contaEncontrada = listaContas.Find(c => c.numero == idconta);
+//
+            Conta contaEncontrada = null;
+            foreach (Conta c in listaContas)
+            {
+                if (c.numero == idconta)
+                {
+                    contaEncontrada = c;
+                    break;
+                }
+            }
 
             if (contaEncontrada != null)
             {
@@ -257,7 +266,6 @@ public abstract class Conta
         return percentual;
     }
 
-    // Método comum para gerar o relatório com base no RF07 e RF08
     public virtual void GerarRelatorio()
     {
         Console.WriteLine("==================================================================");
@@ -283,17 +291,22 @@ public abstract class Conta
         Console.WriteLine($"  - Índice de Saúde: {indice:F1}%");
 
         string classificacaoFinal = "[ CONTA EM RISCO ]";
-        if (indice > 90.0) classificacaoFinal = "[ CONTA SAUDÁVEL ]";
-        else if (indice > 60.0) classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        if (indice >= 90.0)
+        {
+            classificacaoFinal = "[ CONTA SAUDÁVEL ]";
+        }
+        else if (indice >= 60.0)
+        {
+            classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        }
 
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
-
-        //
-
+        
         Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
         
         bool temTarifas = false;
         bool temSaques = false;
+
 
         foreach (var t in minhasTransacoes)
         {
@@ -301,12 +314,13 @@ public abstract class Conta
             {
                 if (!temTarifas)
                 {
-                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação com o cliente[cite: 17].");
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação com o cliente.");
                     temTarifas = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Revisar pacote de tarifas com o cliente.");
             }
         }
+
 
         foreach (var t in minhasTransacoes)
         {
@@ -314,7 +328,7 @@ public abstract class Conta
             {
                 if (!temSaques)
                 {
-                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento.");
                     temSaques = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Acompanhar volume de retiradas.");
@@ -326,7 +340,6 @@ public abstract class Conta
             Console.WriteLine("  🟢 Nenhuma pendência crítica identificada. Sugerir novas opções de investimento.");
         }
     }
-    //
 }
 
 public class ContaCorrente : Conta
@@ -387,12 +400,17 @@ public class ContaCorrente : Conta
         Console.WriteLine($"  - Índice de Saúde: {indice:F1}%");
 
         string classificacaoFinal = "[ CONTA EM RISCO ]";
-        if (indice > 90.0) classificacaoFinal = "[ CONTA SAUDÁVEL ]";
-        else if (indice > 60.0) classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        if (indice >= 90.0)
+        {
+            classificacaoFinal = "[ CONTA SAUDÁVEL ]";
+        }
+        else if (indice >= 60.0)
+        {
+            classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        }
 
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
         
-        // RF07 e RF08 integrados de forma dinâmica com base nas transações reais[cite: 17]
         Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
         
         bool temTarifas = false;
@@ -404,7 +422,7 @@ public class ContaCorrente : Conta
             {
                 if (!temTarifas)
                 {
-                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação com o cliente[cite: 17].");
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação.");
                     temTarifas = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Avaliar isenção ou migração para pacote de serviços.");
@@ -417,7 +435,7 @@ public class ContaCorrente : Conta
             {
                 if (!temSaques)
                 {
-                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento.");
                     temSaques = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Conta utilizando limite ou alto volume de saques. Contatar cliente.");
@@ -476,7 +494,16 @@ public class ContaPoupanca : Conta
         Console.WriteLine($"  - Pontuação Atingida: {pontos} de {maxPts} pontos possíveis");
         Console.WriteLine($"  - Índice de Saúde: {indice:F1}%");
 
-        string classificacaoFinal = "[ CONTA SAUDÁVEL ]";
+        string classificacaoFinal = "[ CONTA EM RISCO ]";
+        if (indice >= 90.0)
+        {
+            classificacaoFinal = "[ CONTA SAUDÁVEL ]";
+        }
+        else if (indice >= 60.0)
+        {
+            classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        }
+
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
         
         Console.WriteLine("\n> RELATÓRIO DE PENDÊNCIAS E RECOMENDAÇÕES DA GERÊNCIA:");
@@ -490,7 +517,7 @@ public class ContaPoupanca : Conta
             {
                 if (!temTarifas)
                 {
-                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão[cite: 17].");
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão.");
                     temTarifas = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Revisar cobranças.");
@@ -503,7 +530,7 @@ public class ContaPoupanca : Conta
             {
                 if (!temSaques)
                 {
-                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento.");
                     temSaques = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Acompanhar saques na poupança.");
@@ -589,9 +616,15 @@ public class ContaSalario : Conta
         Console.WriteLine($"  - Pontuação Atingida: {pontos} de {maxPts} pontos possíveis");
         Console.WriteLine($"  - Índice de Saúde: {indice:F1}%");
 
-        string classificacaoFinal = "[ CONTA SAUDÁVEL ]";
-        if (indice <= 60.0) classificacaoFinal = "[ CONTA EM RISCO ]";
-        else if (indice <= 90.0) classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        string classificacaoFinal = "[ CONTA EM RISCO ]";
+        if (indice >= 90.0)
+        {
+            classificacaoFinal = "[ CONTA SAUDÁVEL ]";
+        }
+        else if (indice >= 60.0)
+        {
+            classificacaoFinal = "[ CONTA EM ATENÇÃO ]";
+        }
 
         Console.WriteLine($"  - Classificação Final: {classificacaoFinal}");
         
@@ -606,7 +639,7 @@ public class ContaSalario : Conta
             {
                 if (!temTarifas)
                 {
-                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação[cite: 17].");
+                    Console.WriteLine("  🔴 Itens Críticos (Tipo \"Tarifa\"): cobranças que exigem revisão ou negociação.");
                     temTarifas = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Negociar tarifas cobradas.");
@@ -619,7 +652,7 @@ public class ContaSalario : Conta
             {
                 if (!temSaques)
                 {
-                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento[cite: 17].");
+                    Console.WriteLine("  🟡 Itens de Atenção (Tipo \"Saque\"): retiradas que exigem acompanhamento.");
                     temSaques = true;
                 }
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Monitorar limite de saques mensais gratuitos.");
