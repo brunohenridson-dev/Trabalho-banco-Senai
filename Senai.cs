@@ -28,6 +28,15 @@ class Program
             if (int.TryParse(opcaoDe, out int opcaoSinha) && Enum.IsDefined(typeof(TipoConta), opcaoSinha))
             {
                 tipoSelecionado = (TipoConta)opcaoSinha;
+
+                Console.Write("\nDigite o nome do titular da conta: ");
+                string nomeTitular = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(nomeTitular))
+                {
+                    nomeTitular = "Titular Padrão";
+                }
+
                 abrirConta = false;
 
                 Console.WriteLine($"\nSucesso! Conta selecionada: {tipoSelecionado}");
@@ -36,20 +45,20 @@ class Program
                 Conta novaConta;
                 if (tipoSelecionado == TipoConta.ContaCorrente)
                 {
-                    novaConta = new ContaCorrente(numeroAleatorio, saldoAtual, "Ana Souza", 500m);
+                    novaConta = new ContaCorrente(numeroAleatorio, saldoAtual, nomeTitular, 500m);
                 }
                 else if (tipoSelecionado == TipoConta.ContaPoupanca)
                 {
-                    novaConta = new ContaPoupanca(numeroAleatorio, saldoAtual, "Bia Lima", 10, 0.5);
+                    novaConta = new ContaPoupanca(numeroAleatorio, saldoAtual, nomeTitular, 10, 0.5);
                 }
                 else
                 {
-                    novaConta = new ContaSalario(numeroAleatorio, saldoAtual, "Carlos Silva", "Empresa X", 2);
+                    novaConta = new ContaSalario(numeroAleatorio, saldoAtual, nomeTitular, "Empresa X", 2);
                 }
 
                 listaContas.Add(novaConta);
 
-                Console.WriteLine("Pressione qualquer tecla para continuar...");
+                Console.WriteLine("\nPressione qualquer tecla para continuar...");
                 Console.ReadKey();
             }
             else
@@ -64,7 +73,6 @@ class Program
         
         if (int.TryParse(Console.ReadLine(), out int idconta))
         {
-//
             Conta contaEncontrada = null;
             foreach (Conta c in listaContas)
             {
@@ -80,7 +88,7 @@ class Program
                 while (continuar)
                 {
                     Console.Clear();
-                    Console.WriteLine($"=== Conta Atual: {tipoSelecionado} | Saldo: R$ {contaEncontrada.saldo} | Pontos: {contaEncontrada.pontos} ===");
+                    Console.WriteLine($"=== Conta Atual: {tipoSelecionado} | Titular: {contaEncontrada.titular} | Saldo: R$ {contaEncontrada.saldo} | Pontos: {contaEncontrada.pontos} ===");
                     
                     double indice = contaEncontrada.CalcularIndiceSaude();
                     Console.WriteLine($"Índice de Saúde: {indice:F1}%");
@@ -307,7 +315,6 @@ public abstract class Conta
         bool temTarifas = false;
         bool temSaques = false;
 
-
         foreach (var t in minhasTransacoes)
         {
             if (t.tipo.Equals("Tarifa", StringComparison.OrdinalIgnoreCase))
@@ -320,7 +327,6 @@ public abstract class Conta
                 Console.WriteLine($"    - [{t.descricao}] R$ {t.valor:N2}: Revisar pacote de tarifas com o cliente.");
             }
         }
-
 
         foreach (var t in minhasTransacoes)
         {
@@ -337,7 +343,7 @@ public abstract class Conta
 
         if (!temTarifas && !temSaques)
         {
-            Console.WriteLine("  🟢 Nenhuma pendência crítica identificada. Sugerir novas opções de investimento.");
+            Console.WriteLine("  🟢 Nenhuma pendência identificada. Oferecer produtos de investimento ao cliente.");
         }
     }
 }
